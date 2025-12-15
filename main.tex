@@ -1,0 +1,334 @@
+\documentclass[10pt]{article}
+ 
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb, graphicx, multicol, array, comment, hyperref, float, tcolorbox}
+\usepackage[export]{adjustbox}
+\usepackage{tikz}
+\graphicspath{{imgs/}}
+\usepackage{enumitem}
+\usepackage{listings}% http://ctan.org/pkg/listings
+\lstset{
+  basicstyle=\ttfamily,
+  numbers=left,
+  stepnumber=1,
+  mathescape
+}
+\usepackage{xcolor}
+\definecolor{shadecolor}{RGB}{230,230,230}
+\newcommand{\code}[1]{\tcbox[on line, boxsep=0pt, left=1pt, right=1pt, top=2pt, bottom=2pt, colframe=white,colback=shadecolor]{\texttt{{#1}}}}
+ 
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+ 
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\begin{document}
+ 
+\title{Catalan\\
+        \large Prinzipien der Programmierung - Objektorientierte Programmierung - WiSe 2025/2026}
+\author{Addie Jordon}
+\maketitle
+
+\section{Deliverables}
+
+In order to pass this course, you \underline{\textbf{must present this assignment}}. If you complete the code and submit it, but \textit{do not present}, then you will \underline{\textbf{fail the course}}. Please see section \ref{sec:submission} for a detailed description of everything you must submit.
+
+To schedule your presentation, please contact your TA.
+
+
+\section{The Game of Catalan}
+In this assignment, you will implement and solve the game of Catalan (see \url{https://catalan.algochem.techfak.de}.
+
+\subsection{How to play Catalan}
+In the game of Catalan, the player is presented with a graph. The player can collapse any vertex of degree 3 in the graph (ie. any vertex with exactly 3 neighbours). The player must then choose which vertices to collapse and in which order. The player wins if they are able to successfully collapse all vertices except one, that is, the final graph has $|V|=n=1$.
+
+\section{A Refresher on Graphs}
+An introduction to the relevant parts of graph theory was given in the lecture. You will be working closely with the \textit{graph} abstract data type (ADT) throughout this assignment. A short summary of graph definitions is provided here for reference.
+
+A graph $G = (V,E)$ is a set of vertices, $V$, and edges, $E$, where each edge in $E$ is an unordered pair of vertices.
+
+There are many different properties graphs may have, but in this assignment all graphs are \textbf{assumed to be simple: connected, undirected, and without self-loops or parallel edges}.
+
+For a vertex $u \in V$, a vertex $v \in V$ is said to be \textit{adjacent} to $u$ if there exists edge $e = \{u, v\} \in E$; $v$ is said to be a \textit{neighbour} of $u$. Additionally, the edge $e$ is said to be \textit{incident} to both $u$ and $v$. The \textit{degree} of a vertex $v$ is the number of edges incident to $v$.
+
+\subsection{Graph ADT implementations}
+Graphs can be represented (on computers) in many different ways. Some common implementations are summarized in the table below.
+
+\begin{center}
+\begin{tabular}{ |p{6cm}|p{5.5cm}|p{3.5cm}| } 
+ \hline
+ Implementation & Notes \\
+ \hline
+ \hline
+ Edge list & A list of all edges in $G$ \\ 
+ \hline
+  Vertex list & A list of all vertices in $G$ with links to adjacent vertices \\ 
+ \hline
+ Adjacency matrix & A two-dimensional matrix $A$ where $A[u,v] = 1$ if edge $\{u,v\} \in E$, and $0$ otherwise. \\ 
+ \hline
+\end{tabular}
+\end{center}
+
+\subsection{GML notation}
+Graphs will be provided in \code{.gml} files for this assignment.
+
+\begin{figure}[h]
+\caption{An example of a graph written in GML notation}
+\centering
+\includegraphics[width=0.5\textwidth, frame]{imgs/gml-syntax.png}
+\label{fig:gml}
+\end{figure}
+
+Each \code{.gml} file will begin with \code{graph [} on the first line. The following lines will be indented and will list all the vertices in the graph one by one as \code{node [ id x label "y" ]} where \code{x} and \code{y} do not necessarily need to match. Each node must be on a separate line from any others and no two nodes may share the same id. \code{id} can be any integer. \textbf{Important}: when reading in a \code{.gml} file for this assignment, only the node ids will be used. DO NOT USE NODE LABELS.
+
+After all nodes are written, all edges are written, each on a new line (the same as the nodes) in the format \code{edge [ source u target v label "-" ]} to denote an undirected edge between vertices with id \code{u} and id \code{v} in the graph. There may or may not be a line (or multiple lines) of whitespace separating the node section from the edge section. Each edge \textit{must} have a label, but the label will always be a single dash \code{"-"} for this assignment. (GML notation allows for other edge attributes to be written in the \code{label} field, such as edge weights or chemical bond type.) 
+
+Note: \textbf{all nodes will always come before all edges}.
+
+The end of the file will close the opening square bracket with an unindented \code{]} on the final line.
+
+\section{Logistics and Details}
+
+The goal of this assignment is for you to put together a working program with very little to get you started and therefore a lot of flexibility. As a result, you will be responsible for writing nearly all aspects of the program. The methods you must write are outlined in each subsection below: \textbf{you may not change the name or omit these methods, and you must keep the exact specified return type}. You \textbf{must} implement \textbf{all} the methods listed; you may implement more for added functionality if you find it helpful, but additional separate methods will not be marked.
+
+You are allowed to and encouraged to write your own helper methods when appropriate. If a single method feels like it is `becoming too long' or covering too much functionality, you may want to split it into smaller pieces using helper methods.
+
+You will need to work on and complete the following four files: \texttt{Vertex.java}, \texttt{Graph.java}, \texttt{Move.java}, and \texttt{Catalan.java}. It is recommended that you work on the files in the listed order, as later files will depend on methods from previous files.
+
+\subsection{\texttt{Vertex.java}}
+All methods are non-static.
+\subsubsection{Methods}
+
+\begin{center}
+\begin{tabular}{ |p{4cm}|p{3.25cm}|p{6.25cm}| } 
+ \hline
+ Method & Return type &  Description\\
+ \hline
+ \hline
+ \texttt{getID()} & \texttt{int}  & Returns the ID of the vertex \\ 
+ \hline
+\end{tabular}
+\end{center}
+
+\subsection{\texttt{Graph.java}}
+All methods are non-static.
+
+\subsubsection{Methods}
+
+\begin{center}
+\begin{tabular}{ |p{4.75cm}|p{3.25cm}|p{6.5cm}| } 
+ \hline
+ Method & Return type &  Description\\
+ \hline
+ \hline
+ \texttt{Graph()} & \texttt{Graph} & A default constructor which accepts no arguments \\ 
+ \hline
+  \texttt{readGraphFromFile(String filepath)} & \texttt{boolean} & Reads in the GML file given by \code{filepath} and returns \code{true} if successful, \code{false} otherwise. \textbf{Note:} please do not assume any pathing; your program may be tested with files outside of the given \code{gml-files} folder. For example, your program should be able to handle the following arguments upon running: \code{java Catalan any/path/level.gml} \\ 
+ \hline
+  \texttt{numVertices()} & \texttt{int} & Returns the number of vertices in the graph \\ 
+ \hline
+ \texttt{getVertices()} & \texttt{ArrayList<Vertex>} & Returns a list of all vertices in the graph  \\ 
+ \hline
+ \texttt{areNeighbours(Vertex u, Vertex v)} & \texttt{boolean} & Returns \code{true} if \code{u} and \code{v} are neighbours, \code{false} otherwise \\ 
+ \hline
+ \texttt{getNeighbours(Vertex u)} & \texttt{ArrayList<Vertex>} & Returns a list of all neighbours of \code{u} \\ 
+ \hline
+ \texttt{collapseNeighbours(Vertex u)} & \texttt{Graph} & If \code{u} has degree 3, returns a new \code{Graph} where everything is the same except the neighbours of \code{u}'s neighbours are now \code{u}'s neighbours (that is, if \code{v} is a neighbour of \code{u}, and \code{y} is a neighbour of \code{v}, then \code{y} is now a neighbour of \code{u}) and all original neighbours of \code{u} are removed. If \code{u} does not have degree 3, returns a copy of the current graph. \textbf{Should not directly modify the graph but return a new graph.}\\ 
+ \hline
+\end{tabular}
+\end{center}
+
+\subsection{\texttt{Move.java}}
+A move in Catalan consists of three parts: the state of the game before the move was played, the vertex whose neighbours were collapsed, and the state of the game after the neighbours were collapsed.
+
+All methods are non-static.
+
+\subsubsection{Methods}
+
+\begin{center}
+\begin{tabular}{ |p{4.75cm}|p{3.25cm}|p{6.5cm}| } 
+ \hline
+ Method & Return type &  Description\\
+ \hline
+ \hline
+ \texttt{getSelectedVertex()} & \texttt{Vertex}  & Returns the vertex whose neighbours were collapsed \\ 
+ \hline
+  \texttt{getBeforeState()} & \texttt{Graph}  & Returns the graph before the neighbours were collapsed \\ 
+ \hline
+ \texttt{getAfterState()} & \texttt{Graph}  & Returns the graph after the neighbours were collapsed \\ 
+ \hline
+ \texttt{toString()} & \texttt{String}  & Overrides the default \code{toString()} method so that each move should have the string \code{select vertex x}, where \code{x} is the vertex whose neighbours were collapsed. Note: you can format the string how you like so long as it includes \code{x} somewhere easily identifiable in the string. \\ 
+ \hline
+\end{tabular}
+\end{center}
+
+\subsection{\texttt{Catalan.java}}
+The final boss of the assignment. You should now have \texttt{Vertex.java}, \texttt{Graph.java}, and \texttt{Move.java} completed and working. Come, weary traveler. It is now time to solve the game of Catalan once and for all.
+
+Note: the \texttt{solve()} method must be implemented non-statically.
+
+\subsubsection{Methods}
+
+\begin{center}
+\begin{tabular}{ |p{4.75cm}|p{3.25cm}|p{6.5cm}| } 
+ \hline
+ Method & Return type &  Description\\
+ \hline
+ \hline
+ \texttt{Catalan(String path)} & \texttt{Catalan} & Constructor which takes a single argument \code{path}, which is the path to a \code{.gml} file \\
+ \hline
+ \texttt{solve()} & \texttt{ArrayList<Move>}  & Returns an ordered list of the \textbf{fewest} moves required to solve Catalan with the initial graph given by the constructor. If there are multiple solutions, return the solution with the lowest numerical order. For example, if both vertex 3 and vertex 5 must be selected and it does not matter in which order, then the solution should select vertex 3 first (since 3 is smaller numerically than 5). If it is impossible to solve, should throw an \code{UnsolvableGameException} (\code{UnsolvableGameException.java} provided)\\ 
+ \hline
+  \texttt{main(String[] args)} & \texttt{void} & After compiling, the program is run using \code{java Catalan <path/to/gml>}. Thus, the main method should create a \code{Catalan} object, call \code{solve()}, print whether the game is solvable or not, and, if solvable, print the lexicographically smallest ordering of moves (in correct order) required to solve it. \\
+ \hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Example}
+
+Consider the following graph (Fig. \ref{fig:simple-blossom}) which can be written in GML (Fig. \ref{fig:simple-blossom-gml}).
+
+\begin{figure}[H]
+\caption{An example graph, `Simple Blossom'.}
+\centering
+\includegraphics[width=0.4\textwidth, frame]{imgs/simple-blossom.jpeg}
+\label{fig:simple-blossom}
+\end{figure}
+
+\begin{figure}[H]
+\caption{`Simple Blossom' graph in GML.}
+\centering
+\includegraphics[width=0.4\textwidth, frame]{imgs/graph2.gml.png}
+\label{fig:simple-blossom-gml}
+\end{figure}
+
+Your program should output something like the following (see Fig. \ref{fig:catalan-call}). Note that since vertices 13, 2, and 8 can be selected in any order, the program chooses the solution ordered numerically from smallest to largest: 2, 8, and then 13. Vertex 5, however, must be selected last.
+
+\begin{figure}[H]
+\caption{The output of \texttt{Catalan} after running it with the above graph.}
+\centering
+\includegraphics[width=0.95\textwidth, frame]{imgs/example-call-cli.png}
+\label{fig:catalan-call}
+\end{figure}
+
+\subsection{Attributes and constructors}
+You are in charge of determining which attributes each class should keep and what constructors the class should provide (if no constructor methods are listed in the table).
+
+\subsection{Accessibility Modifiers}
+All classes and methods outlined in the sections above \textbf{must} be \code{public}. You are in charge of determining which accessibility modifiers (\code{public}, \code{private}, \code{protected}) to use for any other methods and class attributes. It is good practice to think about what needs to be seen by the user and what can be hidden.
+
+
+\section{Hints}
+
+\subsection{Hints on using the command line}
+\begin{itemize}
+    \item part of the joy of working on a (relatively) small project is being able to run it easily from the command line. While it is perfectly fine to use an IDE, this project is an excellent opportunity to familiarize yourself with CLI (command-line interface). As per convention, do not include \code{<>} angled brackets when running the commands below. They are written with angled brackets so it is easier to identify which terms must be substituted.
+    
+    \item use \code{javac <file.java>} to compile a Java file. If the file cannot be compiled, compilation errors will be printed to the screen. When compiling a file that depends on others, Java will automatically compile the dependencies. For example, when compiling \texttt{Graph.java} (which requires \texttt{Vertex.java}), you only need to use the command \code{javac Graph.java} to compile both \texttt{Graph.java} and \texttt{Vertex.java}
+    
+    \item  use \code{java <classname>} to run the \code{main} method of \code{classname}. For example, use \code{java Catalan} to run the main method of your \texttt{Catalan} class
+
+    \item note: if you have added \code{package catalan;} at the top of your files, you should run your Catalan program from the \code{src} directory using \code{java catalan.Catalan <args>} where the lowercase \code{catalan} refers to the package \code{catalan}. Java will automatically search the directory named \code{catalan} for the class \code{Catalan}.
+
+    \item if you decide you like working from the command-line so much that you never want to leave, \code{vim} is a very lightweight, very fun IDE that uses only CLI. After installing, use \code{vim <filename>} to open an existing file or create a new one. \code{vim} separates working modes into \textbf{insert} mode and \textbf{normal} (command) mode, where you can only edit a document if you are in insert mode. Use \code{i} to enter insert mode and \code{esc} to exit insert mode. Use \code{:w} to save your work and \code{:q} to quit. (Note: you must be in normal mode to use \code{:w} and \code{:q}). For more information, here's a basic guide: \url{https://www.freecodecamp.org/news/vim-beginners-guide/}. While you can achieve everything a normal IDE does using vim alone, it is often more practical to use a GUI-based IDE for larger projects.
+\end{itemize}
+
+\subsection{Hints for parsing command-line arguments}
+\begin{itemize}
+    \item as the name suggests, command-line arguments are passed through the command-line and are usually names of files or folders that the program will need to use
+    
+    \item when running your Catalan program from the command-line, use \code{java Catalan <arg0> <arg1> ... } to pass arguments to \code{String[] args} in your \code{public static void main (String[] args)} method
+    
+    \item{you can then get \code{<arg0>} by using array indexing: \code{args[0]}}, and extract the rest of the arguments similarly
+    
+    \item note that all arguments are always passed as strings
+    
+    \item \code{args.length} will tell you how many arguments were passed to the program
+\end{itemize}
+
+\subsection{Hints for file parsing}
+\begin{itemize}
+    \item it may be helpful to familiarize yourself with Java's \texttt{Scanner}: \url{https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Scanner.html}
+    \item specifically: \code{scanner.hasNextLine()} and \code{scanner.nextLine()}
+    \item methods for String manipulation such as \code{s.trim()} and \code{s.split("<pattern>")} may also be useful (where \code{s} is a string)
+    \item parsing integers using \code{Interger.parseInt(String)} may also come in handy
+\end{itemize}
+
+\subsection{Hints on ArrayLists}
+\begin{itemize}
+    \item familiarize yourself with Java's \texttt{ArrayList<E>}: \url{https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ArrayList.html}, particularly \code{add()} and \code{size()}
+    \item depending on your implementation, you may find it helpful to make two-dimensional lists using ArrayLists. Java's generics allows for this: \texttt{ArrayList<ArrayList<E>>}
+    \item If you would like resources on Generics in Java, see \url{https://www.baeldung.com/java-generics}, \url{https://docs.oracle.com/javase/tutorial/java/generics/types.html} or \url{https://www.geeksforgeeks.org/generics-in-java/}
+\end{itemize}
+
+\subsection{Hints on \code{solve()}}
+\begin{itemize}
+    \item it may be helpful to write a helper method that computes all possible immediate next moves given a \texttt{Graph}
+    \item this method can be written in a variety of ways. Some suggestions are using Djikstra's algorithm or implementing using recursion
+    \item no level should take more than a few seconds to solve (it is possible to solve each level in well under one second)
+
+    \item you are asked to return the solution ordered numerically from smallest to largest. You may want to be able to compare \texttt{Vertex} and \texttt{Move} classes in order to achieve this, which you can do by using the interface \texttt{Comparable} and implementing \code{compareTo()}: \url{https://jenkov.com/tutorials/java-collections/comparable.html}
+
+    \item additionally or alternatively, you may want to use the \texttt{Comparator} interface and implement \code{compare()} to create your own comparator class. You can then use \code{Collections.sort(list, comparator)} to sort an \texttt{ArrayList} according to your own specific sorting criteria.
+
+    \item For information on both \code{Comparable} and \code{Comparator}: \\\url{https://www.baeldung.com/java-comparator-comparable}
+\end{itemize}
+
+\subsection{General hints}
+\begin{itemize}
+    \item it may be useful to implement \code{toString()} (for debugging purposes) for more than just \texttt{Move.java}
+    \item only write comments when you think the grader will not understand what you are doing. To minimize the amount of comments, name your variables appropriately
+    \item helper methods should almost always be \code{private}
+    \item Java's `for-each' loops may help your code readability and are useful when iterating over \texttt{ArrayList}s: \url{https://www.geeksforgeeks.org/for-each-loop-in-java/}
+    \item depending on your implementation of the \texttt{Graph} class, Java's \texttt{HashMap} class might be useful: \url{https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html}
+\end{itemize}
+
+\section{Optional Additions}
+If you would like to add more work to your plate, a suggestion is to add a graphical user interface (GUI) on top of your program. The GUI should \textbf{should not interfere} with the standard functionality. A suggestion is to only run the GUI when a command-line argument flag is present.
+
+You are also welcome to add any other functionality that you desire, again, so long as it does not interfere with the base functionality.
+
+Any extra functionality is purely optional and only for fun; it will not contribute toward your grade.
+
+\section{Submission}\label{sec:submission}
+
+You must submit all your work in Java. You must submit four Java files: \texttt{Vertex.java}, \texttt{Graph.java}, \texttt{Move.java}, and \texttt{Catalan.java}. \textbf{Do not change the names of these files.}
+
+You are given one complete Java file: \texttt{UnsolvableGameException.java}. It should not be modified in any way. You are also given four incomplete Java files that can be used as templates: \texttt{Vertex.java}, \texttt{Graph.java}, \texttt{Move.java}, and \texttt{Catalan.java}.
+
+\subsection{Written Report}
+
+Alongside your code, you must submit a document of approximately four pages which provides an introduction to the problem, an overview of all four classes (Vertex, Graph, Move, and Catalan), and a detailed explanation of your solution. You should also discuss which programming principles you employed, any additional functionality you implemented, and the challenges or bugs you encountered and how you solved them. 
+
+A \LaTeX template file is provided for you (\code{main.tex}) in which you should write your report. A suggestion is to use the free online site, Overleaf: \url{www.overleaf.com} to edit your Latex document online; this way you will not need to install Latex on your machine (although it is fairly simple to do so). You will need to create an account.
+
+When submitting your written report, please export it as a PDF and \textbf{submit the PDF only}.
+
+Your TAs will read your report prior to your in-person presentation.
+
+\section{Presentation and Evaluation}
+
+The programming assignment is pass/fail and will be evaluated primarily by in-person presentation. You must prepare a 5-7 minute presentation to give to your TAs, after which they may ask questions. The specifics of the presentation are the same as in previous assignments. You are responsible for contacting your TA to schedule your presentation.
+
+The following percentages are provided to give a sense of which parts will be most difficult and therefore weighted more heavily; they are to be used only as a guideline.
+
+\begin{center}
+\begin{tabular}{ |p{6cm}|p{7cm}|} 
+ \hline
+ Part & Percentage (weight) \\
+ \hline
+ \hline
+ \texttt{Vertex.java} & 5\% \\ 
+ \hline
+ \texttt{Move.java} & 10\%\\ 
+ \hline
+ \texttt{Graph.java} & 45\%\\ 
+ \hline
+ \texttt{Catalan.java} & 40\%\\ 
+ \hline
+\end{tabular}
+\end{center}
+
+\end{document}
